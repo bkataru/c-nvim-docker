@@ -1,0 +1,6 @@
+.cache
+.local
+context.txt
+mason.txt
+collate/context.txt
+compile_commands.json
