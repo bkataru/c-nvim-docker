@@ -7,14 +7,15 @@ $FILENAME = $PSCommandPath.Split("\\")[-1]
 function Show-Help {
 	Write-Host "C Development Environment PowerShell Script"
 	Write-Host "==========================================="
-	Write-Host ".\$FILENAME build		- build the Docker image"
-	Write-Host ".\$FILENAME start		- start a new container"
-	Write-Host ".\$FILENAME stop		- stop the running container"
-	Write-Host ".\$FILENAME restart		- restart the container"
-	Write-Host ".\$FILENAME shell		- connect to the container shell"
-	Write-Host ".\$FILENAME nvim		- start Neovim in the container"
-	Write-Host ".\$FILENAME clean		- remove the container"
-	Write-Host ".\$FILENAME clean-all 	- remove container and image"
+	Write-Host ".\$FILENAME build       - build the Docker image"
+	Write-Host ".\$FILENAME start       - start a new container"
+	Write-Host ".\$FILENAME stop        - stop the running container"
+	Write-Host ".\$FILENAME restart     - restart the container"
+	Write-Host ".\$FILENAME shell       - connect to the container shell"
+	Write-Host ".\$FILENAME nvim        - start Neovim in the container"
+	Write-Host ".\$FILENAME compiledb   - generate compilation database"
+	Write-Host ".\$FILENAME clean       - remove the container"
+	Write-Host ".\$FILENAME clean-all   - remove container and image"
 }
 
 function Build-Image {
@@ -67,6 +68,12 @@ function Start-Nvim {
 	docker exec -it $CONTAINER_NAME nvim
 }
 
+function Generate-CompileDb {
+	Start-Container
+	Write-Host "> generating compilation database..."
+	docker exec -it $CONTAINER_NAME bash -c 'if [ -f "Makefile" ]; then compiledb make; elif [ -f "CMakeLists.txt" ]; then mkdir -p build && cd build && cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. && ln -sf build/compile_commands.json ..; else bash /workspace/gen-compile-db.sh; fi'
+}
+
 function Remove-Container {
 	Stop-Container
 	Write-Host "> removing $CONTAINER_NAME..."
@@ -98,6 +105,7 @@ switch ($command) {
 	"restart" { Restart-Container }
 	"shell" { Enter-Shell }
 	"nvim" { Start-Nvim }
+	"compiledb" { Generate-CompileDb }
 	"clean" { Remove-Container }
 	"clean-all" { Remove-All }
 	default { Show-Help }

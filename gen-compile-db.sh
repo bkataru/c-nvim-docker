@@ -1,24 +1,39 @@
-#!/bin/bash 
+#!/bin/bash
 
-# create a compilation database for C files in the current directory
+# Create a compilation database for C files in the current directory
+# This is a fallback when no Makefile or CMakeLists.txt exists
+
+set -e
+
+OUTPUT_FILE="compile_commands.json"
+COMPILER_FLAGS="-Wall -Wextra -std=c11 -g"
+
+# Start JSON array
+echo "[" > "$OUTPUT_FILE"
+
 first=true
 
-find . -type f -name "*.c" | while read -r file; do
-  abs_file=$(realpath "$file")
+# Use process substitution instead of pipe to preserve variable state
+while IFS= read -r -d '' file; do
+    abs_file=$(realpath "$file")
+    
+    if [ "$first" = true ]; then
+        first=false
+    else
+        echo "," >> "$OUTPUT_FILE"
+    fi
+    
+    cat >> "$OUTPUT_FILE" << EOF
+  {
+    "directory": "$(pwd)",
+    "command": "clang $COMPILER_FLAGS -c $file -o ${file%.c}.o",
+    "file": "$abs_file"
+  }
+EOF
+done < <(find . -type f -name "*.c" -print0)
 
-  if [ "$first" = true ]; then
-    first=false
-  else
-    echo "," >> compile_commands.json
-  fi
+# Close JSON array
+echo "]" >> "$OUTPUT_FILE"
 
-  echo "  {" >> compile_commands.json
-  echo "    \"directory\": \"$(pwd)\"," >> compile_commands.json
-  echo "    \"command\": \"clang -Wall -Werror -std=c11 -g $file -o ${file%.c}.o\"," >> compile_commands.json
-  echo "    \"file\": \"$abs_file\"" >> compile_commands.json
-  echo "  }" >> compile_commands.json
-done
-
-echo "]" >> compile_commands.json
-chmod 644 compile_commands.json
-echo "compilation database generated: compile_commands.json"
+chmod 644 "$OUTPUT_FILE"
+echo "Compilation database generated: $OUTPUT_FILE"

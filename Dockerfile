@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y \
     unzip \
     wget \
     python3.11 \
-	python3-pip \
-	python3.11-venv \
+    python3-pip \
+    python3.11-venv \
     nodejs \
     npm \
     ripgrep \
@@ -16,13 +16,13 @@ RUN apt-get update && apt-get install -y \
     make \
     cmake \
     bear \
+    gdb \
+    lldb \
+    valgrind \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install compiledb
-# RUN pip3 install compiledb
-
-# Install compiledb-go
+# Install compiledb-go (faster than Python compiledb)
 RUN curl -L -o /tmp/compiledb.txz https://github.com/fcying/compiledb-go/releases/download/v1.5.1/compiledb-linux-amd64.txz \
     && tar -C /tmp -Jxf /tmp/compiledb.txz \
     && mv /tmp/compiledb /usr/bin \
@@ -32,9 +32,7 @@ RUN curl -L -o /tmp/compiledb.txz https://github.com/fcying/compiledb-go/release
 # Install Neovim
 RUN curl -L -o /tmp/nvim.tar.gz https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-x86_64.tar.gz \
     && tar -C /tmp -xzf /tmp/nvim.tar.gz \
-    && mv /tmp/nvim-linux-x86_64 /tmp/nvim \
-    && mv /tmp/nvim /usr/bin \
-    && chmod +x /usr/bin/nvim \
+    && mv /tmp/nvim-linux-x86_64 /opt/nvim \
     && rm /tmp/nvim.tar.gz
 
 # Add Neovim to PATH
